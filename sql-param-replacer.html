@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SQL Parameter Replacer</title>
+  <meta name="description" content="Convert SQL queries with parameters to executable SQL by replacing placeholders with actual values.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/sql-formatter@15.5.2/dist/sql-formatter.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #4CAF50;
+      --primary-hover: #45a049;
+      --background-color: #f8f9fa;
+      --text-color: #333;
+      --border-color: #ddd;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+      --error-color: #dc3545;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--background-color);
+      color: var(--text-color);
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+      line-height: 1.6;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin: 0 0 20px 0;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .description {
+      margin-bottom: 20px;
+      color: #666;
+    }
+
+    .example {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 20px 0;
+      border: 1px solid var(--border-color);
+    }
+
+    .example pre {
+      margin: 10px 0 0 0;
+      white-space: pre-wrap;
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 5px 0;
+      font-weight: 500;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 14px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      margin-top: 5px;
+      box-sizing: border-box;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      resize: vertical;
+      min-height: 150px;
+      transition: border-color 0.3s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+    }
+
+    .output {
+      background: #f8f9fa;
+      white-space: pre;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    button:hover {
+      background: var(--primary-hover);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .status {
+      font-size: 14px;
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: var(--success-color);
+      display: block;
+    }
+
+    .status.warning {
+      background: #fff3cd;
+      color: var(--warning-color);
+      display: block;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: var(--error-color);
+      display: block;
+    }
+
+    .copy-icon::before {
+      content: "📋";
+    }
+
+    .convert-icon::before {
+      content: "🔄";
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔄 SQL Parameter Replacer</h2>
+    <p class="description">Convert SQL queries with parameters to executable SQL by replacing placeholders with actual values.</p>
+
+    <div class="example">
+      <strong>Example:</strong>
+      <pre>SELECT * FROM users WHERE email = $1 AND created_at > $2
+-- PARAMETERS: ["test@example.com", "2024-01-01"]</pre>
+    </div>
+
+    <label for="sql-input">SQL Input:</label>
+    <textarea id="sql-input" rows="12" placeholder="Paste your SQL query with parameters here..."></textarea>
+
+    <div class="actions">
+      <button id="convert-btn" class="convert-icon">Convert</button>
+      <button id="copy-btn" class="copy-icon">Copy</button>
+    </div>
+    <div id="status" class="status"></div>
+
+    <label for="sql-output">Converted SQL:</label>
+    <textarea id="sql-output" class="output" rows="12" readonly></textarea>
+  </div>
+
+  <script>
+    document.getElementById('convert-btn').addEventListener('click', () => {
+      const input = document.getElementById("sql-input").value;
+      const output = document.getElementById("sql-output");
+      const status = document.getElementById("status");
+      status.className = "status";
+      status.textContent = "";
+
+      let params;
+      let sqlBody;
+      try {
+        // Split input into SQL and parameters
+        const parts = input.split('-- PARAMETERS:');
+        sqlBody = parts[0].trim();
+        const paramStr = parts[1].trim();
+
+        // Parse parameters
+        const arrayStr = paramStr.replace(/^\[|\]$/g, ''); // Remove outer brackets
+        params = arrayStr.split(',').map(item => {
+          // Remove quotes and trim whitespace
+          return item.trim().replace(/^['"]|['"]$/g, '');
+        });
+
+        if (!Array.isArray(params)) {
+          throw new Error('Parameters must be an array');
+        }
+      } catch (e) {
+        output.value = `❌ Error processing input: ${e.message}\nRaw input: ${input}`;
+        status.className = "status error";
+        status.textContent = "Error processing input";
+        return;
+      }
+
+      params.forEach((val, i) => {
+        const regex = new RegExp('\\$' + (i + 1), 'g');
+        const quoted = typeof val === 'string' ? `'${val.replace(/'/g, "''")}'` : val;
+        sqlBody = sqlBody.replace(regex, quoted);
+      });
+
+      let finalSql = sqlBody;
+      try {
+        finalSql = window.sqlFormatter.format(sqlBody, {
+          language: 'postgresql',
+          keywordCase: 'upper'
+        });
+        status.className = "status success";
+        status.textContent = "Successfully converted!";
+      } catch (err) {
+        console.error('Formatting error:', err);
+        status.className = "status warning";
+        status.textContent = "Converted but formatting failed";
+      }
+
+      // Set the value and force update
+      output.value = finalSql;
+      output.textContent = finalSql;
+      output.innerHTML = finalSql;
+    });
+
+    document.getElementById('copy-btn').addEventListener('click', () => {
+      const output = document.getElementById("sql-output");
+      const status = document.getElementById("status");
+      output.select();
+      document.execCommand("copy");
+      status.className = "status success";
+      status.textContent = "Copied to clipboard!";
+      setTimeout(() => {
+        status.className = "status";
+        status.textContent = "";
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
