@@ -218,7 +218,8 @@
       }
 
       params.forEach((val, i) => {
-        const regex = new RegExp('\\$' + (i + 1), 'g');
+        // Use a more precise regex that matches the exact parameter number
+        const regex = new RegExp('\\$' + (i + 1) + '(?!\\d)', 'g');
         const quoted = typeof val === 'string' ? `'${val.replace(/'/g, "''")}'` : val;
         sqlBody = sqlBody.replace(regex, quoted);
       });
