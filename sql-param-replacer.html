@@ -194,10 +194,24 @@
 
       let params;
       let sqlBody;
+      let finalSql;
       try {
         // Split input into SQL and parameters
         const parts = input.split('-- PARAMETERS:');
         sqlBody = parts[0].trim();
+
+        // If no parameters section exists, just format the SQL
+        if (parts.length === 1) {
+          finalSql = window.sqlFormatter.format(sqlBody, {
+            language: 'postgresql',
+            keywordCase: 'upper'
+          });
+          status.className = "status success";
+          status.textContent = "Successfully formatted SQL!";
+          output.value = finalSql;
+          return;
+        }
+
         const paramStr = parts[1].trim();
 
         // Parse parameters
@@ -224,7 +238,6 @@
         sqlBody = sqlBody.replace(regex, quoted);
       });
 
-      let finalSql = sqlBody;
       try {
         finalSql = window.sqlFormatter.format(sqlBody, {
           language: 'postgresql',
