@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  # Run on pull requests to main
+  pull_request:
+    branches: ['main']
+
+  # Run on push to any branch (except main to avoid duplicate with deploy)
+  push:
+    branches-ignore: ['main']
+
+# Set basic permissions
+permissions:
+  contents: read
+  pull-requests: write # For commenting on PRs
+
+# Allow concurrent CI runs for different PRs
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Main CI job - combines linting, type checking, and building
+  ci:
+    name: CI Pipeline
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: '--no-deprecation'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22.19.0'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Run CI pipeline
+        run: pnpm run ci
+
+  # Security audit (optional - can fail without blocking)
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      NODE_OPTIONS: '--no-deprecation'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22.19.0'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run security audit
+        run: pnpm audit --audit-level moderate || true

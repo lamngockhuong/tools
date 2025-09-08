@@ -11,19 +11,19 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'public/index.html'),
-        'sql-param-replacer': resolve(__dirname, 'public/sql-param-replacer.html')
-      }
-    }
+        'sql-param-replacer': resolve(__dirname, 'public/sql-param-replacer.html'),
+      },
+    },
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
     },
-    extensions: ['.ts', '.js']
+    extensions: ['.ts', '.js'],
   },
   publicDir: '../static', // if you want to copy static assets
   server: {
     open: '/sql-param-replacer.html',
-    port: 8080
-  }
+    port: 8080,
+  },
 });
