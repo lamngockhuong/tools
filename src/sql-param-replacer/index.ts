@@ -16,7 +16,9 @@ export function parseSqlAndParams(input: string): { sqlBody: string, params: any
     const arrayStr = paramStr.replace(/^\[|\]$/g, '');
     params = arrayStr.split(',').map(item => {
       const raw = item.trim();
-      if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) {
+      const isQuoted = (raw.startsWith('"') && raw.endsWith('"')) ||
+        (raw.startsWith('\'') && raw.endsWith('\''));
+      if (isQuoted) {
         return raw.slice(1, -1);
       }
       if (/^-?\d+(\.\d+)?$/.test(raw)) {
@@ -36,7 +38,7 @@ export function replaceSqlParams(sqlBody: string, params: any[]): string {
     if (typeof val === 'object') {
       quoted = `'${JSON.stringify(val)}'`;
     } else if (typeof val === 'string') {
-      quoted = `'${val.replace(/'/g, "''")}'`;
+      quoted = `'${val.replace(/'/g, '\'\'')}'`;
     } else {
       quoted = val;
     }
@@ -45,8 +47,12 @@ export function replaceSqlParams(sqlBody: string, params: any[]): string {
   return replacedSql;
 }
 
-export function convertSqlInput(input: string): { finalSql: string, status: string, message: string } {
-  let sqlBody: string, params: (string|number)[] | null, finalSql: string, replaced: string = '';
+export function convertSqlInput(input: string): {
+  finalSql: string;
+  status: string;
+  message: string;
+} {
+  let sqlBody: string, params: (string|number)[] | null, finalSql: string, replaced = '';
   // Return error if input is empty or only whitespace
   if (!input || input.trim() === '') {
     return { finalSql: '', status: 'error', message: 'Input is empty' };
@@ -56,26 +62,30 @@ export function convertSqlInput(input: string): { finalSql: string, status: stri
     sqlBody = parsed.sqlBody;
     params = parsed.params;
     if (!params) {
-      // @ts-ignore
+      // @ts-expect-error - sqlFormatter is available globally via script tag
       finalSql = window.sqlFormatter.format(sqlBody, {
         language: 'postgresql',
-        keywordCase: 'upper'
+        keywordCase: 'upper',
       });
       return { finalSql, status: 'success', message: 'Successfully formatted SQL!' };
     }
   } catch (e: any) {
-    return { finalSql: `❌ Error processing input: ${e.message}\nRaw input: ${input}`,
-      status: 'error', message: 'Error processing input' };
+    const errorMsg = `❌ Error processing input: ${e.message}\nRaw input: ${input}`;
+    return {
+      finalSql: errorMsg,
+      status: 'error',
+      message: 'Error processing input',
+    };
   }
   try {
     replaced = replaceSqlParams(sqlBody, params!);
-    // @ts-ignore
+    // @ts-expect-error - sqlFormatter is available globally via script tag
     finalSql = window.sqlFormatter.format(replaced, {
       language: 'postgresql',
-      keywordCase: 'upper'
+      keywordCase: 'upper',
     });
     return { finalSql, status: 'success', message: 'Successfully converted!' };
-  } catch (err: any) {
+  } catch {
     return { finalSql: replaced, status: 'warning', message: 'Converted but formatting failed' };
   }
 }
@@ -89,6 +99,6 @@ export function copyToClipboard(text: string): Promise<void> {
   // For non-secure contexts or older browsers without Clipboard API
   // Return a rejected promise with helpful message
   return Promise.reject(new Error(
-    'Clipboard API not available. Please use HTTPS or manually copy the text.'
+    'Clipboard API not available. Please use HTTPS or manually copy the text.',
   ));
 }

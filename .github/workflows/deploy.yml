@@ -41,11 +41,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run tests
-        run: pnpm test
-
-      - name: Build project
-        run: pnpm build
+      - name: Run CI pipeline
+        run: pnpm run ci
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

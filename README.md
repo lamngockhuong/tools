@@ -1,5 +1,10 @@
 # Development Tools Collection
 
+[![CI](https://github.com/lamngockhuong/tools/actions/workflows/ci.yml/badge.svg)](https://github.com/lamngockhuong/tools/actions/workflows/ci.yml)
+[![Deploy](https://github.com/lamngockhuong/tools/actions/workflows/deploy.yml/badge.svg)](https://github.com/lamngockhuong/tools/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/Node.js-22%2B-green.svg)](https://nodejs.org/)
+
 A collection of useful development tools and utilities.
 
 ## 🛠️ Available Tools
@@ -31,19 +36,27 @@ Convert parameterized SQL queries (with $1, $2, etc.) to executable SQL by repla
 # Install dependencies
 pnpm install
 
-# Run development server
+# Start development server
 pnpm dev
 
 # Run tests
 pnpm test
 
+# Code quality checks
+pnpm run lint        # Run ESLint
+pnpm run lint:fix    # Auto-fix ESLint issues
+pnpm run type-check  # TypeScript type checking
+
 # Build for production
 pnpm build
+
+# Run full CI pipeline
+pnpm run ci
 ```
 
 ### Project Structure
 
-```
+```text
 ├── src/                    # TypeScript source code
 │   └── sql-param-replacer/ # SQL Parameter Replacer module
 ├── public/                 # HTML files and static assets
