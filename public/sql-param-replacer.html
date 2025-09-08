@@ -165,14 +165,25 @@
     <textarea id="sql-output" class="output" rows="12" readonly></textarea>
   </div>
   <script>
-    document.getElementById('convert-btn').addEventListener('click', () => {
+    // Function to convert SQL
+    function convertSQL() {
       const input = document.getElementById("sql-input").value;
       const output = document.getElementById("sql-output");
       const status = document.getElementById("status");
+
+      // Clear previous status
       status.className = "status";
       status.textContent = "";
+
+      // If input is empty, clear output
+      if (!input.trim()) {
+        output.value = "";
+        return;
+      }
+
       const result = window.convertSqlInput(input);
       output.value = result.finalSql;
+
       if (result.status === 'success') {
         status.className = "status success";
       } else if (result.status === 'warning') {
@@ -181,7 +192,17 @@
         status.className = "status error";
       }
       status.textContent = result.message;
+    }
+
+    // Auto-convert on input with debounce
+    let convertTimeout;
+    document.getElementById('sql-input').addEventListener('input', () => {
+      clearTimeout(convertTimeout);
+      convertTimeout = setTimeout(convertSQL, 500); // Wait 500ms after user stops typing
     });
+
+    // Manual convert button
+    document.getElementById('convert-btn').addEventListener('click', convertSQL);
     document.getElementById('copy-btn').addEventListener('click', async () => {
       const output = document.getElementById("sql-output");
       const status = document.getElementById("status");
