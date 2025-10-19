@@ -1,15 +1,15 @@
-# Development Tools Collection
+# Tools Collection
 
 [![CI](https://github.com/lamngockhuong/tools/actions/workflows/ci.yml/badge.svg)](https://github.com/lamngockhuong/tools/actions/workflows/ci.yml)
 [![Deploy](https://github.com/lamngockhuong/tools/actions/workflows/deploy.yml/badge.svg)](https://github.com/lamngockhuong/tools/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/Node.js-22%2B-green.svg)](https://nodejs.org/)
 
-A collection of useful development tools and utilities.
+A collection of useful tools and utilities for productivity, development, and lifestyle.
 
-## 🛠️ Available Tools
+## 🧰 Available Tools
 
-### SQL Parameter Replacer
+### 🗄️ SQL Parameter Replacer
 
 Convert parameterized SQL queries (with $1, $2, etc.) to executable SQL by replacing parameters with actual values. Perfect for debugging TypeORM queries.
 
@@ -22,6 +22,22 @@ Convert parameterized SQL queries (with $1, $2, etc.) to executable SQL by repla
 - Real-time conversion and formatting
 
 **Live Demo:** [SQL Parameter Replacer](https://lamngockhuong.github.io/tools/sql-param-replacer.html)
+
+### 😴 Sleep Cycle Calculator
+
+Calculate optimal bedtime and wake-up times based on 90-minute sleep cycles. Wake up feeling refreshed and energized by aligning with your natural sleep rhythm.
+
+**Features:**
+
+- Calculate wake-up times from bedtime (or vice versa)
+- Customizable sleep cycles (recommended: 5-6 cycles = 7.5-9 hours)
+- Adjustable sleep latency (time to fall asleep)
+- Date and time selection
+- Settings persistence (localStorage)
+- Mobile-friendly interface
+- Vietnamese language support
+
+**Live Demo:** [Sleep Cycle Calculator](https://lamngockhuong.github.io/tools/sleep-cycle-calculator.html)
 
 ## 🚀 Development
 
@@ -57,12 +73,13 @@ pnpm run ci
 ### Project Structure
 
 ```text
-├── src/                    # TypeScript source code
-│   └── sql-param-replacer/ # SQL Parameter Replacer module
-├── public/                 # HTML files and static assets
-├── test/                   # Unit tests
-├── dist/                   # Built files (generated)
-└── .github/workflows/      # GitHub Actions
+├── src/                       # TypeScript source code
+│   ├── sql-param-replacer/    # SQL Parameter Replacer module
+│   └── sleep-cycle-calculator/# Sleep Cycle Calculator module
+├── public/                    # HTML files and static assets
+├── test/                      # Unit tests
+├── dist/                      # Built files (generated)
+└── .github/workflows/         # GitHub Actions
 ```
 
 ## 🌐 Deployment
