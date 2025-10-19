@@ -11,7 +11,14 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'public/index.html'),
-        'sql-param-replacer': resolve(__dirname, 'public/sql-param-replacer.html'),
+        'sql-param-replacer': resolve(
+          __dirname,
+          'public/sql-param-replacer.html',
+        ),
+        'sleep-cycle-calculator': resolve(
+          __dirname,
+          'public/sleep-cycle-calculator.html',
+        ),
       },
     },
   },
@@ -23,7 +30,7 @@ export default defineConfig({
   },
   publicDir: '../static', // if you want to copy static assets
   server: {
-    open: '/sql-param-replacer.html',
+    open: '/',
     port: 8080,
   },
 });
