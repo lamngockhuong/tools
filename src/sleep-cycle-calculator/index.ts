@@ -83,6 +83,17 @@ export function saveSettings(settings: SleepSettings): void {
 }
 
 /**
+ * Clear saved settings from localStorage
+ */
+export function clearSettings(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Silent fail - settings are optional
+  }
+}
+
+/**
  * Calculate sleep/wake times for given cycles
  */
 export function calculateTimes(
@@ -228,13 +239,15 @@ function handleCalculate(): void {
     </div>
   `;
 
-  // Save settings if remember is checked
+  // Save or clear settings based on remember checkbox
   if (rememberCheckbox?.checked) {
     saveSettings({
       rec: recInput?.value.trim() || '',
       other: otherInput?.value.trim() || '',
       latency,
     });
+  } else {
+    clearSettings();
   }
 }
 
