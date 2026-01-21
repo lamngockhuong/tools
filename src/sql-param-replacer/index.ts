@@ -1,7 +1,9 @@
 // Logic for SQL Parameter Replacer (TypeScript, module)
 
 export function parseSqlAndParams(input: string): { sqlBody: string, params: any[] | null } {
-  const parts = input.split('-- PARAMETERS:');
+  // Support both "-- PARAMETERS:" and "-- params:" (case-insensitive for params)
+  const paramMarkerRegex = /-- (?:PARAMETERS|params):/i;
+  const parts = input.split(paramMarkerRegex);
   const sqlBody = parts[0].trim();
   if (parts.length === 1) {
     // No parameters section, return only SQL

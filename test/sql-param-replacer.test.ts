@@ -1,8 +1,8 @@
 import {
-  parseSqlAndParams,
-  replaceSqlParams,
   convertSqlInput,
   copyToClipboard,
+  parseSqlAndParams,
+  replaceSqlParams,
 } from '../src/sql-param-replacer/index';
 
 // Setup global mock for sqlFormatter in jsdom environment
@@ -25,13 +25,20 @@ describe('SQL Parameter Replacer - Unit Tests', () => {
     it('parses SQL with number parameters', () => {
       const input = 'SELECT * FROM users WHERE id = $1 -- PARAMETERS: [123]';
       const result = parseSqlAndParams(input);
-      expect(result).toEqual({ sqlBody: 'SELECT * FROM users WHERE id = $1', params: [123] });
+      expect(result).toEqual({
+        sqlBody: 'SELECT * FROM users WHERE id = $1',
+        params: [123],
+      });
     });
 
     it('parses SQL with string parameters', () => {
-      const input = 'SELECT * FROM users WHERE email = $1 -- PARAMETERS: ["test@example.com"]';
+      const input =
+        'SELECT * FROM users WHERE email = $1 -- PARAMETERS: ["test@example.com"]';
       const result = parseSqlAndParams(input);
-      expect(result).toEqual({ sqlBody: 'SELECT * FROM users WHERE email = $1', params: ['test@example.com'] });
+      expect(result).toEqual({
+        sqlBody: 'SELECT * FROM users WHERE email = $1',
+        params: ['test@example.com'],
+      });
     });
 
     it('parses SQL with object and date parameters', () => {
@@ -44,6 +51,34 @@ describe('SQL Parameter Replacer - Unit Tests', () => {
       expect(result.params?.[0]).toEqual({ foo: 'bar', num: 123 });
       expect(typeof result.params?.[1]).toBe('string');
       expect(result.params?.[1]).toBe('2025-01-01T00:00:00.000Z');
+    });
+
+    it('parses SQL with "-- params:" alias (lowercase)', () => {
+      const input = 'SELECT * FROM users WHERE id = $1 -- params: [123]';
+      const result = parseSqlAndParams(input);
+      expect(result).toEqual({
+        sqlBody: 'SELECT * FROM users WHERE id = $1',
+        params: [123],
+      });
+    });
+
+    it('parses SQL with "-- Params:" alias (mixed case)', () => {
+      const input =
+        'SELECT * FROM users WHERE email = $1 -- Params: ["test@example.com"]';
+      const result = parseSqlAndParams(input);
+      expect(result).toEqual({
+        sqlBody: 'SELECT * FROM users WHERE email = $1',
+        params: ['test@example.com'],
+      });
+    });
+
+    it('parses SQL with "-- PARAMS:" alias (uppercase)', () => {
+      const input = 'SELECT * FROM users WHERE name = $1 -- PARAMS: ["John"]';
+      const result = parseSqlAndParams(input);
+      expect(result).toEqual({
+        sqlBody: 'SELECT * FROM users WHERE name = $1',
+        params: ['John'],
+      });
     });
   });
 
@@ -59,7 +94,9 @@ describe('SQL Parameter Replacer - Unit Tests', () => {
       const sql = 'SELECT * FROM users WHERE id = $1 AND email = $2';
       const params = [42, 'a@b.com'];
       const result = replaceSqlParams(sql, params);
-      expect(result).toBe('SELECT * FROM users WHERE id = 42 AND email = \'a@b.com\'');
+      expect(result).toBe(
+        'SELECT * FROM users WHERE id = 42 AND email = \'a@b.com\'',
+      );
     });
 
     it('replaces object and date parameters with JSON stringified values', () => {
@@ -97,7 +134,8 @@ describe('SQL Parameter Replacer - Unit Tests', () => {
 describe('SQL Parameter Replacer - TypeORM Integration Tests', () => {
   describe('Basic CRUD Operations', () => {
     it('handles INSERT queries with multiple values', () => {
-      const input = 'INSERT INTO "user" ("firstName", "lastName", "email") VALUES ($1, $2, $3) -- PARAMETERS: ["John","Doe","john@example.com"]';
+      const input =
+        'INSERT INTO "user" ("firstName", "lastName", "email") VALUES ($1, $2, $3) -- PARAMETERS: ["John","Doe","john@example.com"]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('\'John\'');
       expect(result.finalSql).toContain('\'Doe\'');
@@ -106,7 +144,8 @@ describe('SQL Parameter Replacer - TypeORM Integration Tests', () => {
     });
 
     it('handles UPDATE queries with WHERE conditions', () => {
-      const input = 'UPDATE "user" SET "firstName" = $1, "updatedAt" = $2 WHERE "id" = $3 -- PARAMETERS: ["Jane","2025-01-08T10:30:00.000Z",123]';
+      const input =
+        'UPDATE "user" SET "firstName" = $1, "updatedAt" = $2 WHERE "id" = $3 -- PARAMETERS: ["Jane","2025-01-08T10:30:00.000Z",123]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('\'Jane\'');
       expect(result.finalSql).toContain('\'2025-01-08T10:30:00.000Z\'');
@@ -115,7 +154,8 @@ describe('SQL Parameter Replacer - TypeORM Integration Tests', () => {
     });
 
     it('handles DELETE queries', () => {
-      const input = 'DELETE FROM "user" WHERE "id" = $1 AND "deletedAt" IS NULL -- PARAMETERS: [456]';
+      const input =
+        'DELETE FROM "user" WHERE "id" = $1 AND "deletedAt" IS NULL -- PARAMETERS: [456]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('456');
       expect(result.status).toBe('success');
@@ -148,7 +188,8 @@ describe('SQL Parameter Replacer - TypeORM Integration Tests', () => {
     });
 
     it('handles queries with LIMIT and OFFSET', () => {
-      const input = 'SELECT * FROM "posts" WHERE "authorId" = $1 ORDER BY "createdAt" DESC LIMIT $2 OFFSET $3 -- PARAMETERS: [123,10,20]';
+      const input =
+        'SELECT * FROM "posts" WHERE "authorId" = $1 ORDER BY "createdAt" DESC LIMIT $2 OFFSET $3 -- PARAMETERS: [123,10,20]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('123');
       expect(result.finalSql).toContain('10');
@@ -157,7 +198,8 @@ describe('SQL Parameter Replacer - TypeORM Integration Tests', () => {
     });
 
     it('handles LIKE patterns with wildcards', () => {
-      const input = 'SELECT * FROM "users" WHERE "email" LIKE $1 OR "name" ILIKE $2 -- PARAMETERS: ["%@company.com","%john%"]';
+      const input =
+        'SELECT * FROM "users" WHERE "email" LIKE $1 OR "name" ILIKE $2 -- PARAMETERS: ["%@company.com","%john%"]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('\'%@company.com\'');
       expect(result.finalSql).toContain('\'%john%\'');
@@ -167,7 +209,8 @@ describe('SQL Parameter Replacer - TypeORM Integration Tests', () => {
 
   describe('Data Type Handling', () => {
     it('handles NULL values', () => {
-      const input = 'UPDATE "user" SET "profile" = $1, "lastLogin" = $2 WHERE "id" = $3 -- PARAMETERS: [null,null,789]';
+      const input =
+        'UPDATE "user" SET "profile" = $1, "lastLogin" = $2 WHERE "id" = $3 -- PARAMETERS: [null,null,789]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('null');
       expect(result.finalSql).toContain('789');
@@ -175,7 +218,8 @@ describe('SQL Parameter Replacer - TypeORM Integration Tests', () => {
     });
 
     it('handles boolean values', () => {
-      const input = 'SELECT * FROM "settings" WHERE "isEnabled" = $1 AND "isPublic" = $2 -- PARAMETERS: [true,false]';
+      const input =
+        'SELECT * FROM "settings" WHERE "isEnabled" = $1 AND "isPublic" = $2 -- PARAMETERS: [true,false]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('true');
       expect(result.finalSql).toContain('false');
@@ -183,7 +227,8 @@ describe('SQL Parameter Replacer - TypeORM Integration Tests', () => {
     });
 
     it('handles decimal/float numbers', () => {
-      const input = 'SELECT * FROM "products" WHERE "price" >= $1 AND "discount" <= $2 -- PARAMETERS: [99.99,0.15]';
+      const input =
+        'SELECT * FROM "products" WHERE "price" >= $1 AND "discount" <= $2 -- PARAMETERS: [99.99,0.15]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('99.99');
       expect(result.finalSql).toContain('0.15');
@@ -191,14 +236,16 @@ describe('SQL Parameter Replacer - TypeORM Integration Tests', () => {
     });
 
     it('handles arrays as parameters (PostgreSQL array syntax)', () => {
-      const input = 'SELECT * FROM "products" WHERE "tags" && $1 -- PARAMETERS: [["electronics","gadgets"]]';
+      const input =
+        'SELECT * FROM "products" WHERE "tags" && $1 -- PARAMETERS: [["electronics","gadgets"]]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('\'["electronics","gadgets"]\'');
       expect(result.status).toBe('success');
     });
 
     it('handles complex nested objects (JSON columns)', () => {
-      const input = 'INSERT INTO "metadata" ("config") VALUES ($1) -- PARAMETERS: [{"database":{"host":"localhost","port":5432},"features":["auth","logging"]}]';
+      const input =
+        'INSERT INTO "metadata" ("config") VALUES ($1) -- PARAMETERS: [{"database":{"host":"localhost","port":5432},"features":["auth","logging"]}]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('"database"');
       expect(result.finalSql).toContain('"host"');
@@ -211,14 +258,18 @@ describe('SQL Parameter Replacer - TypeORM Integration Tests', () => {
 describe('SQL Parameter Replacer - Edge Cases & Error Handling', () => {
   describe('Special Characters & Encoding', () => {
     it('handles parameters with special characters and escaping', () => {
-      const input = 'SELECT * FROM "logs" WHERE "message" = $1 -- PARAMETERS: ["Error: Can\'t connect to \'database\'"]';
+      const input =
+        'SELECT * FROM "logs" WHERE "message" = $1 -- PARAMETERS: ["Error: Can\'t connect to \'database\'"]';
       const result = convertSqlInput(input);
-      expect(result.finalSql).toContain('\'Error: Can\'\'t connect to \'\'database\'\'\'');
+      expect(result.finalSql).toContain(
+        '\'Error: Can\'\'t connect to \'\'database\'\'\'',
+      );
       expect(result.status).toBe('success');
     });
 
     it('handles parameters with unicode characters', () => {
-      const input = 'INSERT INTO "messages" ("text", "emoji") VALUES ($1, $2) -- PARAMETERS: ["Hello 世界","🚀"]';
+      const input =
+        'INSERT INTO "messages" ("text", "emoji") VALUES ($1, $2) -- PARAMETERS: ["Hello 世界","🚀"]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('\'Hello 世界\'');
       expect(result.finalSql).toContain('\'🚀\'');
@@ -228,7 +279,8 @@ describe('SQL Parameter Replacer - Edge Cases & Error Handling', () => {
 
   describe('Edge Data Cases', () => {
     it('handles empty arrays', () => {
-      const input = 'SELECT * FROM "items" WHERE "tags" = $1 -- PARAMETERS: [[]]';
+      const input =
+        'SELECT * FROM "items" WHERE "tags" = $1 -- PARAMETERS: [[]]';
       const result = convertSqlInput(input);
       expect(result.finalSql).toContain('\'[]\'');
       expect(result.status).toBe('success');
@@ -321,7 +373,9 @@ describe('SQL Parameter Replacer - Clipboard Functionality', () => {
   it('handles clipboard errors gracefully', async() => {
     // Setup modern browser environment with failing clipboard
     const failingClipboard = {
-      writeText: jest.fn(() => Promise.reject(new Error('Clipboard access denied'))),
+      writeText: jest.fn(() =>
+        Promise.reject(new Error('Clipboard access denied')),
+      ),
     };
     Object.defineProperty(navigator, 'clipboard', {
       value: failingClipboard,
@@ -334,7 +388,9 @@ describe('SQL Parameter Replacer - Clipboard Functionality', () => {
 
     const testText = 'SELECT * FROM users WHERE id = 999';
 
-    await expect(copyToClipboard(testText)).rejects.toThrow('Clipboard access denied');
+    await expect(copyToClipboard(testText)).rejects.toThrow(
+      'Clipboard access denied',
+    );
     expect(failingClipboard.writeText).toHaveBeenCalledWith(testText);
   });
 });
